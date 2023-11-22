@@ -6,7 +6,23 @@ import numpy as np
 
 def convert_to_date(value):
     return value.date()
+    
+def replace_value(value):
+    if isinstance(value, float):  # Sprawdzenie czy wartość jest floatem
+        value = str(int(value))  # Konwersja na string
 
+    value = value.replace(',', '')  # Usunięcie przecinka
+    value = int(value)
+
+    if value >= 1_000_000_000:  # Jeśli wartość jest większa lub równa 1 miliardowi
+        return f"{value // 1_000_000_000}g"
+    elif value >= 1_000_000:  # Jeśli wartość jest większa lub równa 1 milionowi
+        return f"{value // 1_000_000}m"
+    elif value >= 1_000:  # Jeśli wartość jest większa lub równa 1 tysiącowi
+        return f"{value // 1_000}t"
+    else:
+        return str(value)
+        
 @st.cache_data
 def get_data():
     current_date = datetime.now()
@@ -28,6 +44,7 @@ df = get_data()
 
 with st.sidebar:
     days_number = st.slider("Wybierz ilość dni",2,20)
+    volumen_percentage = st.slider("Wybierz minimalny % wzrost wolumenu",25,2200)
     volume_number = st.number_input('Minimalny Wolumen',key="3",min_value=100_000,step=1000)
     min_value = st.number_input('Wybierz minimalną wartość Kursu',key="1",step=0.1)
     max_value = st.number_input('Wybierz maksymalną wartość Kursu',key="2",min_value=min_value,step=0.1)
@@ -79,9 +96,10 @@ if days_number is not None and not df_completed.empty:
     #st.write(new_df)
     
     if not new_df.empty:
-        df_positve = new_df[(new_df['Zmiana_wolumenu'] > 0)]
+        df_positve = new_df[(new_df['Zmiana_wolumenu'] > volumen_percentage/100)]
         df_positve['Zmiana_wolumenu'] = df_positve['Zmiana_wolumenu'].apply(lambda x: f"{x * 100:.4f}%")
         st.header(f"Zmiana wolumenu > 0, {len(df_positve)} uniklanych wartośći")
+        df_positve["Wolumen_śr"] = df_positve["Wolumen_śr"].apply(replace_value)
         st.dataframe(df_positve)
 
         st.divider()
@@ -89,12 +107,15 @@ if days_number is not None and not df_completed.empty:
         df_zero = new_df[(new_df['Zmiana_wolumenu'] == 0)]
         df_zero['Zmiana_wolumenu'] = df_zero['Zmiana_wolumenu'].apply(lambda x: f"{x * 100:.4f}%")
         st.header(f"Zmiana wolumenu = 0, {len(df_zero)} uniklanych wartośći")
+        df_zero["Wolumen_śr"] = df_zero["Wolumen_śr"].apply(replace_value)
         st.dataframe(df_zero)
 
         st.divider()
 
-        df_negative = new_df[(new_df['Zmiana_wolumenu'] < 0)]
+        df_negative = new_df[(new_df['Zmiana_wolumenu'] < (volumen_percentage/100)*-1)]
         df_negative['Zmiana_wolumenu'] = df_negative['Zmiana_wolumenu'].apply(lambda x: f"{x * 100:.4f}%")
         st.header(f"Zmiana wolumenu < 0, {len(df_negative)} uniklanych wartośći")
+        df_negative["Wolumen_śr"] = df_negative["Wolumen_śr"].apply(replace_value)
         st.dataframe(df_negative)
+
 
