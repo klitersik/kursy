@@ -30,7 +30,7 @@ with st.sidebar:
     days_number = st.slider("Wybierz ilość dni",2,20)
     volume_number = st.slider("Wybierz minimalną wielkość wolumenu braną pod uwagę",500_000,300_000_000,10000)
     min_value = st.number_input('Wybierz minimalną wartość Kursu',key="1",step=0.1)
-    max_value = st.number_input('Wybierz maksymalną wartość Kursu',key="2",min_value=min_value,step=0.1)
+    max_value = st.number_input('Wybierz maksymalną wartość Kursu',key="2",min_value=min_value+0.1,step=0.1)
     start_date = datetime.now().date()
     end_date = start_date - timedelta(days=days_number)
 
