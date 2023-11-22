@@ -25,7 +25,7 @@ def get_data():
     return df
 
 df = get_data()
-new_df = None
+
 with st.sidebar:
     days_number = st.slider("Wybierz ilość dni",2,20)
     volume_number = st.slider("Wybierz minimalną wielkość wolumenu braną pod uwagę",500_000,300_000_000,10000)
@@ -67,19 +67,19 @@ if days_number is not None and not df_completed.empty:
 
     #st.write(new_df)
 
-if not new_df.empty:
-    df_positve = new_df[(new_df['zmiana_wolumenu'] > 0)]
-    st.header(f"Zmiana wolumenu > 0, {len(df_positve)} uniklanych wartośći")
-    st.dataframe(df_positve)
-
-    st.divider()
-
-    df_zero = new_df[(new_df['zmiana_wolumenu'] == 0)]
-    st.header(f"Zmiana wolumenu = 0, {len(df_zero)} uniklanych wartośći")
-    st.dataframe(df_zero)
-
-    st.divider()
-
-    df_negative = new_df[(new_df['zmiana_wolumenu'] < 0)]
-    st.header(f"Zmiana wolumenu < 0, {len(df_negative)} uniklanych wartośći")
-    st.dataframe(df_negative)
+    if not new_df.empty:
+        df_positve = new_df[(new_df['zmiana_wolumenu'] > 0)]
+        st.header(f"Zmiana wolumenu > 0, {len(df_positve)} uniklanych wartośći")
+        st.dataframe(df_positve)
+    
+        st.divider()
+    
+        df_zero = new_df[(new_df['zmiana_wolumenu'] == 0)]
+        st.header(f"Zmiana wolumenu = 0, {len(df_zero)} uniklanych wartośći")
+        st.dataframe(df_zero)
+    
+        st.divider()
+    
+        df_negative = new_df[(new_df['zmiana_wolumenu'] < 0)]
+        st.header(f"Zmiana wolumenu < 0, {len(df_negative)} uniklanych wartośći")
+        st.dataframe(df_negative)
