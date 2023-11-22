@@ -6,7 +6,7 @@ import numpy as np
 
 def convert_to_date(value):
     return value.date()
-    
+
 def replace_value(value):
     if isinstance(value, float):  # Sprawdzenie czy wartość jest floatem
         value = str(int(value))  # Konwersja na string
@@ -22,12 +22,12 @@ def replace_value(value):
         return f"{value // 1_000}t"
     else:
         return str(value)
-        
+    
+
 @st.cache_data
 def get_data():
-    current_date = datetime.now()
-    url = st.secrets["url"]
-    key = st.secrets["key"]
+    url = "https://iqcvodlrxlihqexxwpiv.supabase.co"
+    key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxY3ZvZGxyeGxpaHFleHh3cGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDA1NzI3MTgsImV4cCI6MjAxNjE0ODcxOH0.syaMQHi6l0_G-PBXM5VdXgd3jc-vjHzTMxJ92r2RimU"
     supabase: Client = create_client(url, key)
 
     response = supabase.table('indeksy').select("Nazwa","Wolumen", "Kurs","Data").execute()
@@ -41,7 +41,7 @@ def get_data():
     return df
 
 df = get_data()
-
+st.write(df)
 with st.sidebar:
     days_number = st.slider("Wybierz ilość dni",2,20)
     volumen_percentage = st.slider("Wybierz minimalny % wzrost wolumenu",25,2200)
@@ -52,6 +52,7 @@ with st.sidebar:
     end_date = start_date - timedelta(days=days_number)
 
 df_completed = df[(df['Data'] <= start_date) & (df['Data'] >= end_date)]
+df_completed = df_completed.sort_values(by='Data', ascending=False)
 
 if days_number is not None and not df_completed.empty:
     # Sortowanie danych po dacie
