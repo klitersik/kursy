@@ -25,7 +25,7 @@ def get_data():
     return df
 
 df = get_data()
-
+new_df = None
 with st.sidebar:
     days_number = st.slider("Wybierz ilość dni",2,20)
     volume_number = st.slider("Wybierz minimalną wielkość wolumenu braną pod uwagę",500_000,300_000_000,10000)
