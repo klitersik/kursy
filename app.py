@@ -41,7 +41,7 @@ def get_data():
     return df
 
 df = get_data()
-st.write(df)
+
 with st.sidebar:
     days_number = st.slider("Wybierz ilość dni",2,20)
     volumen_percentage = st.slider("Wybierz minimalny % wzrost wolumenu",25,2200)
