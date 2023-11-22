@@ -41,12 +41,12 @@ if days_number is not None and not df_completed.empty:
     grouped = df_completed.groupby('Nazwa')
     # Lista do przechowywania danych do nowego DataFrame
     new_data = []
-
     # Obliczenie zmiany wolumenu w procentach dla każdej nazwy
     for nazwa, group in grouped:
         first_volume = group.iloc[0]['Wolumen']
         last_volume = group.iloc[-1]['Wolumen']
-        zmiana_wolumenu = (last_volume - first_volume)/last_volume
+        mean_volume = group['Wolumen'].mean()
+        zmiana_wolumenu = (mean_volume - first_volume)/mean_volume
         max_date_row = group[group['Data'] == group['Data'].max()]  # Wiersz z maksymalną datą
         if not max_date_row.empty:
             kurs = max_date_row.iloc[0, -2]
@@ -55,7 +55,7 @@ if days_number is not None and not df_completed.empty:
                 'Nazwa': nazwa,
                 'Zmiana_wolumenu': zmiana_wolumenu,
                 'Kurs': kurs,
-                'Wolumen': wolumen
+                'Wolumen_śr': mean_volume
             })
 
     # Tworzenie nowego DataFrame
@@ -68,7 +68,8 @@ if days_number is not None and not df_completed.empty:
     sredni_wzrost = new_df['Zmiana_wolumenu'].mean()
 
     new_df = new_df[(new_df['Kurs'] <= max_value) & (df['Kurs'] >= min_value)]
-    new_df = new_df[(new_df['Wolumen'] >= volume_number)]
+    new_df = new_df[(new_df['Wolumen_śr'] >= volume_number)]
+   
 
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Sprawdzane dni", days_number)
@@ -76,20 +77,24 @@ if days_number is not None and not df_completed.empty:
     col3.metric("Średni wzrost", f"{sredni_wzrost:.2f}")
     col4.metric("Minimalny wolumen", f"{volume_number}")
     #st.write(new_df)
-
+    
     if not new_df.empty:
         df_positve = new_df[(new_df['Zmiana_wolumenu'] > 0)]
+        df_positve['Zmiana_wolumenu'] = df_positve['Zmiana_wolumenu'].apply(lambda x: f"{x * 100:.4f}%")
         st.header(f"Zmiana wolumenu > 0, {len(df_positve)} uniklanych wartośći")
         st.dataframe(df_positve)
 
         st.divider()
 
         df_zero = new_df[(new_df['Zmiana_wolumenu'] == 0)]
+        df_zero['Zmiana_wolumenu'] = df_zero['Zmiana_wolumenu'].apply(lambda x: f"{x * 100:.4f}%")
         st.header(f"Zmiana wolumenu = 0, {len(df_zero)} uniklanych wartośći")
         st.dataframe(df_zero)
 
         st.divider()
 
         df_negative = new_df[(new_df['Zmiana_wolumenu'] < 0)]
+        df_negative['Zmiana_wolumenu'] = df_negative['Zmiana_wolumenu'].apply(lambda x: f"{x * 100:.4f}%")
         st.header(f"Zmiana wolumenu < 0, {len(df_negative)} uniklanych wartośći")
         st.dataframe(df_negative)
+
