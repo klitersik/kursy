@@ -10,6 +10,8 @@ def convert_to_date(value):
 @st.cache_data
 def get_data():
     current_date = datetime.now()
+    url = st.secrets["url"]
+    key = st.secrets["key"]
     supabase: Client = create_client(url, key)
 
     response = supabase.table('indeksy').select("Nazwa","Wolumen", "Kurs","Data").execute()
