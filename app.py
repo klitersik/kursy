@@ -51,13 +51,13 @@ df = get_data()
 max_date = df['Data'].max()
 
 with st.sidebar:
-    days_number = st.slider("Wybierz ilość dni",2,20)
+    #days_number = st.slider("Wybierz ilość dni",2,20)
     volumen_percentage = st.slider("Wybierz minimalny % wzrost wolumenu",25,2200)
     volume_number = st.number_input('Minimalny Wolumen',key="3",min_value=100_000,step=1000)
     min_value = st.number_input('Wybierz minimalną wartość Kursu',key="1",step=0.1)
     max_value = st.number_input('Wybierz maksymalną wartość Kursu',key="2",min_value=min_value,step=0.1)
-    start_date = datetime.now().date()
-    end_date = start_date - timedelta(days=days_number)
+    #start_date = datetime.now().date()
+    #end_date = start_date - timedelta(days=days_number)
 
 df_filtered = df[(df['Difference%'] >= volumen_percentage)]
 df_filtered = df_filtered[(df['Wolumen_śr'] >= volume_number)]
