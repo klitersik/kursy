@@ -103,20 +103,5 @@ if days_number is not None and not df_completed.empty:
         df_positve["Wolumen_śr"] = df_positve["Wolumen_śr"].apply(replace_value)
         st.dataframe(df_positve)
 
-        st.divider()
-
-        df_zero = new_df[(new_df['Zmiana_wolumenu'] == 0)]
-        df_zero['Zmiana_wolumenu'] = df_zero['Zmiana_wolumenu'].apply(lambda x: f"{x * 100:.4f}%")
-        st.header(f"Zmiana wolumenu = 0, {len(df_zero)} uniklanych wartośći")
-        df_zero["Wolumen_śr"] = df_zero["Wolumen_śr"].apply(replace_value)
-        st.dataframe(df_zero)
-
-        st.divider()
-
-        df_negative = new_df[(new_df['Zmiana_wolumenu'] < (volumen_percentage/100)*-1)]
-        df_negative['Zmiana_wolumenu'] = df_negative['Zmiana_wolumenu'].apply(lambda x: f"{x * 100:.4f}%")
-        st.header(f"Zmiana wolumenu < 0, {len(df_negative)} uniklanych wartośći")
-        df_negative["Wolumen_śr"] = df_negative["Wolumen_śr"].apply(replace_value)
-        st.dataframe(df_negative)
 
 
