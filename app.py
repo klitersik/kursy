@@ -41,7 +41,6 @@ def get_data():
     return df
 
 df = get_data()
-
 with st.sidebar:
     days_number = st.slider("Wybierz ilość dni",2,20)
     volumen_percentage = st.slider("Wybierz minimalny % wzrost wolumenu",25,2200)
@@ -82,22 +81,22 @@ if days_number is not None and not df_completed.empty:
     # Sortowanie malejąco po zmianie wolumenu
     new_df = new_df.sort_values(by='Zmiana_wolumenu', ascending=False)
 
-    # Obliczenie średniego wzrostu dla wszystkich nazw
-    sredni_wzrost = new_df['Zmiana_wolumenu'].mean()
-
     new_df = new_df[(new_df['Kurs'] <= max_value) & (df['Kurs'] >= min_value)]
     new_df = new_df[(new_df['Wolumen_śr'] >= volume_number)]
-   
-
+    
+    if not new_df.empty:
+        df_positve = new_df[(new_df['Zmiana_wolumenu'] > volumen_percentage/100)]
+        sredni_wzrost = df_positve['Zmiana_wolumenu'].mean()
+    else:
+        sredni_wzrost = 0
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Sprawdzane dni", days_number)
     col2.metric("Przedział cenowy", f"{min_value:.2f}-{max_value:.2f}")
-    col3.metric("Średni wzrost", f"{sredni_wzrost:.2f}")
+    col3.metric("Średni wzrost", f"{sredni_wzrost*100:.2f}%")
     col4.metric("Minimalny wolumen", f"{volume_number}")
     #st.write(new_df)
     
     if not new_df.empty:
-        df_positve = new_df[(new_df['Zmiana_wolumenu'] > volumen_percentage/100)]
         df_positve['Zmiana_wolumenu'] = df_positve['Zmiana_wolumenu'].apply(lambda x: f"{x * 100:.4f}%")
         st.header(f"Zmiana wolumenu > 0, {len(df_positve)} uniklanych wartośći")
         df_positve["Wolumen_śr"] = df_positve["Wolumen_śr"].apply(replace_value)
