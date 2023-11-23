@@ -3,9 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from supabase import create_client, Client
 import numpy as np
-
-def convert_to_date(value):
-    return value.date()
+import requests
 
 def replace_value(value):
     if isinstance(value, float):  # Sprawdzenie czy wartość jest floatem
@@ -26,21 +24,32 @@ def replace_value(value):
 
 @st.cache_data
 def get_data():
-    url = "https://iqcvodlrxlihqexxwpiv.supabase.co"
+    anon = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxY3ZvZGxyeGxpaHFleHh3cGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDA1NzI3MTgsImV4cCI6MjAxNjE0ODcxOH0.syaMQHi6l0_G-PBXM5VdXgd3jc-vjHzTMxJ92r2RimU"
+    url = 'https://iqcvodlrxlihqexxwpiv.supabase.co/rest/v1/rpc/calculate_data'
     key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxY3ZvZGxyeGxpaHFleHh3cGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDA1NzI3MTgsImV4cCI6MjAxNjE0ODcxOH0.syaMQHi6l0_G-PBXM5VdXgd3jc-vjHzTMxJ92r2RimU"
-    supabase: Client = create_client(url, key)
 
-    response = supabase.table('indeksy').select("Nazwa","Wolumen", "Kurs","Data").execute()
-    df = pd.DataFrame(response.data)
-    df['Data'] = pd.to_datetime(df['Data'])
-    df = df.sort_values(by='Data')
-    df['Data'] = df['Data'].apply(convert_to_date)
-    df = df.drop_duplicates()
-    df['Kurs'] = df['Kurs'].astype(float)
-    df['Wolumen'] = df['Wolumen'].astype(int)
+    headers = {
+        'Content-Type': 'application/json',
+        'apikey': key,
+        'Authorization': anon
+    }
+
+    response = requests.post(url, headers=headers)
+
+    json_list = response.json()
+
+    df = pd.DataFrame(json_list)
+    df.rename(columns={'symbol_of': 'Symbol'}, inplace=True)
+    df.rename(columns={'data': 'Data'}, inplace=True)
+    df.rename(columns={'percent_difference': 'Difference%'}, inplace=True)
+    df.rename(columns={'kurs': 'Kurs'}, inplace=True)
+    df.rename(columns={'avg_wolumen': 'Wolumen_śr'}, inplace=True)
+    
     return df
 
 df = get_data()
+max_date = df['Data'].max()
+
 with st.sidebar:
     days_number = st.slider("Wybierz ilość dni",2,20)
     volumen_percentage = st.slider("Wybierz minimalny % wzrost wolumenu",25,2200)
@@ -50,57 +59,18 @@ with st.sidebar:
     start_date = datetime.now().date()
     end_date = start_date - timedelta(days=days_number)
 
-df_completed = df[(df['Data'] <= start_date) & (df['Data'] >= end_date)]
-df_completed = df_completed.sort_values(by='Data', ascending=False)
+df_filtered = df[(df['Difference%'] >= volumen_percentage)]
+df_filtered = df_filtered[(df['Wolumen_śr'] >= volume_number)]
+df_filtered = df_filtered[(df_filtered['Kurs'] >= min_value) & (df_filtered['Kurs'] <= max_value)]
+avg_value = df_filtered["Difference%"].mean()
+df_filtered["Wolumen_śr"] = df_filtered["Wolumen_śr"].apply(replace_value)
 
-if days_number is not None and not df_completed.empty:
-    # Sortowanie danych po dacie
-    grouped = df_completed.groupby('Nazwa')
-    # Lista do przechowywania danych do nowego DataFrame
-    new_data = []
-    # Obliczenie zmiany wolumenu w procentach dla każdej nazwy
-    for nazwa, group in grouped:
-        first_volume = group.iloc[0]['Wolumen']
-        last_volume = group.iloc[-1]['Wolumen']
-        mean_volume = group['Wolumen'].mean()
-        zmiana_wolumenu = (mean_volume - first_volume)/mean_volume
-        max_date_row = group[group['Data'] == group['Data'].max()]  # Wiersz z maksymalną datą
-        if not max_date_row.empty:
-            kurs = max_date_row.iloc[0, -2]
-            wolumen = max_date_row.iloc[0, -3]
-            new_data.append({
-                'Nazwa': nazwa,
-                'Zmiana_wolumenu': zmiana_wolumenu,
-                'Kurs': kurs,
-                'Wolumen_śr': mean_volume
-            })
+st.header(f"Ostatnia aktualizacja Danych :blue[{max_date}]")
 
-    # Tworzenie nowego DataFrame
-    new_df = pd.DataFrame(new_data)
-
-    # Sortowanie malejąco po zmianie wolumenu
-    new_df = new_df.sort_values(by='Zmiana_wolumenu', ascending=False)
-
-    new_df = new_df[(new_df['Kurs'] <= max_value) & (df['Kurs'] >= min_value)]
-    new_df = new_df[(new_df['Wolumen_śr'] >= volume_number)]
-    
-    if not new_df.empty:
-        df_positve = new_df[(new_df['Zmiana_wolumenu'] > volumen_percentage/100)]
-        sredni_wzrost = df_positve['Zmiana_wolumenu'].mean()
-    else:
-        sredni_wzrost = 0
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Sprawdzane dni", days_number)
-    col2.metric("Przedział cenowy", f"{min_value:.2f}-{max_value:.2f}")
-    col3.metric("Średni wzrost", f"{sredni_wzrost*100:.2f}%")
-    col4.metric("Minimalny wolumen", f"{volume_number}")
-    #st.write(new_df)
-    
-    if not new_df.empty:
-        df_positve['Zmiana_wolumenu'] = df_positve['Zmiana_wolumenu'].apply(lambda x: f"{x * 100:.4f}%")
-        st.header(f"Zmiana wolumenu > 0, {len(df_positve)} uniklanych wartośći")
-        df_positve["Wolumen_śr"] = df_positve["Wolumen_śr"].apply(replace_value)
-        st.dataframe(df_positve)
+col1, col2, col3 = st.columns(3)
+col1.metric("Przedział cenowy", f"{min_value:.2f}-{max_value:.2f}")
+col2.metric("Średni wzrost", f"{avg_value:.2f}%")
+col3.metric("Minimalny średni wolumen", f"{volume_number}")
 
 
-
+st.write(df_filtered)
