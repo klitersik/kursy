@@ -64,6 +64,7 @@ df_filtered = df_filtered[(df['Wolumen_śr'] >= volume_number)]
 df_filtered = df_filtered[(df_filtered['Kurs'] >= min_value) & (df_filtered['Kurs'] <= max_value)]
 avg_value = df_filtered["Difference%"].mean()
 df_filtered["Wolumen_śr"] = df_filtered["Wolumen_śr"].apply(replace_value)
+df_filtered.drop("Data", axis=1, inplace=True)
 
 st.header(f"Ostatnia aktualizacja Danych :blue[{max_date}]")
 
