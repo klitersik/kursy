@@ -97,5 +97,3 @@ if authentication_status:
 
 
     st.write(df_filtered)
-
-st.write(df_filtered)
