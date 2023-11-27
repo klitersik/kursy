@@ -22,8 +22,6 @@ def replace_value(value):
     else:
         return str(value)
     
-
-@st.cache_data
 def get_data():
     anon = st.secrets["anon"]
     url = st.secrets["url"]
