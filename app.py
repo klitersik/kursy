@@ -94,4 +94,4 @@ if authentication_status:
     col3.metric("Minimalny średni wolumen", f"{volume_number}")
 
 
-    st.write(df_filtered.style.hide_index())
+    st.write(df_filtered.hide_index())
