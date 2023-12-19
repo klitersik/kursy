@@ -94,4 +94,4 @@ if authentication_status:
     col3.metric("Minimalny średni wolumen", f"{volume_number}")
 
 
-    st.dataframe(df_filtered, width=500)
+    st.dataframe(df_filtered, use_container_width = True, hide_index  = True)
