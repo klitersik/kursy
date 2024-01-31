@@ -46,52 +46,52 @@ def get_data():
     
     return df
 
-credentials = {
-    'usernames': {
-        'user': {
-            'email': 'jsmith@gmail.com',
-            'name': 'John Smith',
-            'password': "$2b$12$/hpb84eg3/ZxAAyoj/xsfuN9myY46dCT5TZoQH8PVe9tQzr6q7lQW"
-        }
-    }
-}
+#credentials = {
+#    'usernames': {
+#        'user': {
+#            'email': 'jsmith@gmail.com',
+#            'name': 'John Smith',
+#            'password': "$2b$12$/hpb84eg3/ZxAAyoj/xsfuN9myY46dCT5TZoQH8PVe9tQzr6q7lQW"
+#        }
+#    }
+#}
 
-authenticator = stauth.Authenticate(
-    credentials,
-    cookie_name='random_cookie_name',
-    key='random_signature_key',
-    cookie_expiry_days=30,
-    preauthorized=['jsmith@gmail.com']
-)
+#authenticator = stauth.Authenticate(
+#    credentials,
+#    cookie_name='random_cookie_name',
+#    key='random_signature_key',
+#    cookie_expiry_days=30,
+#    preauthorized=['jsmith@gmail.com']
+#)
 
-name, authentication_status, username = authenticator.login('Login', 'main')
+#name, authentication_status, username = authenticator.login('Login', 'main')
 
 # Logika w zależności od statusu autentykacji
-if authentication_status:
-    df = get_data()
-    max_date = df['Data'].max()
+#if authentication_status:
+df = get_data()
+max_date = df['Data'].max()
 
-    with st.sidebar:
-        days_number = st.slider("Wybierz ilość dni",2,20)
-        volumen_percentage = st.slider("Wybierz minimalny % wzrost wolumenu",25,2200)
-        volume_number = st.number_input('Minimalny Wolumen',key="3",min_value=100_000,step=1000)
-        min_value = st.number_input('Wybierz minimalną wartość Kursu',key="1",step=0.1)
-        max_value = st.number_input('Wybierz maksymalną wartość Kursu',key="2",min_value=min_value,step=0.1)
-        start_date = datetime.now().date()
-        end_date = start_date - timedelta(days=days_number)
+with st.sidebar:
+    days_number = st.slider("Wybierz ilość dni",2,20)
+    volumen_percentage = st.slider("Wybierz minimalny % wzrost wolumenu",25,2200)
+    volume_number = st.number_input('Minimalny Wolumen',key="3",min_value=100_000,step=1000)
+    min_value = st.number_input('Wybierz minimalną wartość Kursu',key="1",step=0.1)
+    max_value = st.number_input('Wybierz maksymalną wartość Kursu',key="2",min_value=min_value,step=0.1)
+    start_date = datetime.now().date()
+    end_date = start_date - timedelta(days=days_number)
 
-    df_filtered = df[(df['Difference%'] >= volumen_percentage)]
-    df_filtered = df_filtered[(df['Wolumen_śr'] >= volume_number)]
-    df_filtered = df_filtered[(df_filtered['Kurs'] >= min_value) & (df_filtered['Kurs'] <= max_value)]
-    avg_value = df_filtered["Difference%"].mean()
-    df_filtered["Wolumen_śr"] = df_filtered["Wolumen_śr"].apply(replace_value)
+df_filtered = df[(df['Difference%'] >= volumen_percentage)]
+df_filtered = df_filtered[(df['Wolumen_śr'] >= volume_number)]
+df_filtered = df_filtered[(df_filtered['Kurs'] >= min_value) & (df_filtered['Kurs'] <= max_value)]
+avg_value = df_filtered["Difference%"].mean()
+df_filtered["Wolumen_śr"] = df_filtered["Wolumen_śr"].apply(replace_value)
 
-    st.header(f"Ostatnia aktualizacja Danych :blue[{max_date}]")
+st.header(f"Ostatnia aktualizacja Danych :blue[{max_date}]")
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Przedział cenowy", f"{min_value:.2f}-{max_value:.2f}")
-    col2.metric("Średni wzrost", f"{avg_value:.2f}%")
-    col3.metric("Minimalny średni wolumen", f"{volume_number}")
+col1, col2, col3 = st.columns(3)
+col1.metric("Przedział cenowy", f"{min_value:.2f}-{max_value:.2f}")
+col2.metric("Średni wzrost", f"{avg_value:.2f}%")
+col3.metric("Minimalny średni wolumen", f"{volume_number}")
 
 
-    st.dataframe(df_filtered, use_container_width = True, hide_index  = True)
+st.dataframe(df_filtered, use_container_width = True, hide_index  = True)
